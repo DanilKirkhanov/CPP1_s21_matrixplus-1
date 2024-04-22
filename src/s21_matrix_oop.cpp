@@ -24,6 +24,20 @@ S21Matrix::S21Matrix(const S21Matrix& other) noexcept {
     for (int j = 0; j < cols_; j++) (*this)(i, j) = other(i, j);
 }
 
+S21Matrix::S21Matrix(S21Matrix&& other) noexcept {
+  cols_ = other.cols_;
+  rows_ = other.rows_;
+  matrix_ = new double[rows_ * cols_]{};
+
+  for (int i = 0; i < rows_; i++)
+    for (int j = 0; j < cols_; j++) (*this)(i, j) = other(i, j);
+
+  delete[] other.matrix_;
+  other.matrix_ = nullptr;
+  other.rows_ = 0;
+  other.cols_ = 0;
+}
+
 S21Matrix::~S21Matrix() noexcept {
   if (matrix_) delete[] matrix_;
   cols_ = 0;
@@ -33,12 +47,12 @@ S21Matrix::~S21Matrix() noexcept {
 
 bool S21Matrix::EqMatrix(const S21Matrix& other) const {
   bool res = true;
-  if (this->cols_ != other.cols_ && this->rows_ != other.rows_)
+  if (this->cols_ != other.cols_ || this->rows_ != other.rows_)
     res = false;
   else
     for (int i = 0; i < rows_ && res; i++)
       for (int j = 0; j < cols_ && res; j++)
-        if (std::abs((*this)(i, j) - other(i, j) > eps)) res = false;
+        if (std::abs((*this)(i, j) - other(i, j)) > eps) res = false;
 
   return res;
 }
@@ -68,6 +82,7 @@ void S21Matrix::MulMatrix(const S21Matrix& other) {
   for (int i = 0; i < rows_; i++)
     for (int j = 0; j < other.cols_; j++)
       for (int k = 0; k < cols_; k++) res(i, j) += (*this)(i, k) * other(k, j);
+
   *this = res;
 }
 
@@ -115,7 +130,7 @@ S21Matrix S21Matrix::InverseMatrix() {
   double det = this->Determinant();
   if (det == 0) throw std::logic_error("Det = 0");
 
-  return *this;
+  return CalcComplements().Transpose() * (1.0 / det);
 }
 S21Matrix S21Matrix::operator+(const S21Matrix& other) {
   S21Matrix result(*this);
@@ -145,7 +160,7 @@ bool S21Matrix::operator==(const S21Matrix& other) const {
   return EqMatrix(other);
 }
 
-S21Matrix& S21Matrix::operator=(const S21Matrix& other) {
+S21Matrix S21Matrix::operator=(const S21Matrix& other) {
   if (cols_ != other.cols_ || rows_ != other.rows_) {
     if (matrix_) delete[] matrix_;
     matrix_ = new double[other.rows_ * other.cols_];
@@ -157,35 +172,41 @@ S21Matrix& S21Matrix::operator=(const S21Matrix& other) {
   return *this;
 }
 
-S21Matrix& S21Matrix::operator+=(const S21Matrix& other) {
-  SumMatrix(other);
-  return *this;
-}
+void S21Matrix::operator+=(const S21Matrix& other) { SumMatrix(other); }
 
-S21Matrix& S21Matrix::operator-=(const S21Matrix& other) {
-  SubMatrix(other);
-  return *this;
-}
+void S21Matrix::operator-=(const S21Matrix& other) { SubMatrix(other); }
 
-S21Matrix& S21Matrix::operator*=(const S21Matrix& other) {
-  MulMatrix(other);
-  return *this;
-}
+void S21Matrix::operator*=(const S21Matrix& other) { MulMatrix(other); }
 
-S21Matrix& S21Matrix::operator*=(const double num) {
-  MulNumber(other);
-  return *this;
-}
+void S21Matrix::operator*=(const double num) { MulNumber(num); }
 
 double& S21Matrix::operator()(int i, int j) {
-  if (i < 0 || j < 0 || i >= cols_ || j >= rows_)
+  if (i < 0 || j < 0 || i >= rows_ || j >= cols_)
     throw std::out_of_range("Out of range");
   return matrix_[i * cols_ + j];
 }
 double& S21Matrix::operator()(int i, int j) const {
-  if (i < 0 || j < 0 || i >= cols_ || j >= rows_)
+  if (i < 0 || j < 0 || i >= rows_ || j >= cols_)
     throw std::out_of_range("Out of range");
   return matrix_[i * cols_ + j];
+}
+
+int S21Matrix::GetRows() const { return rows_; }
+int S21Matrix::GetCols() const { return cols_; }
+void S21Matrix::SetRows(int rows) {
+  if (rows < 1) throw std::out_of_range("Out of range");
+  S21Matrix new_matrix(rows, cols_);
+  for (int i = 0; i < rows_ && i < rows; i++)
+    for (int j = 0; j < cols_; j++) new_matrix(i, j) = (*this)(i, j);
+  *this = new_matrix;
+}
+void S21Matrix::SetCols(int cols) {
+  if (cols < 1) throw std::out_of_range("Out of range");
+  S21Matrix new_matrix(rows_, cols);
+  for (int i = 0; i < rows_; i++)
+    for (int j = 0; j < cols_ && j < cols; j++)
+      new_matrix(i, j) = (*this)(i, j);
+  *this = new_matrix;
 }
 
 S21Matrix S21Matrix::GetMinor(int row, int col) {
@@ -212,11 +233,4 @@ void S21Matrix::print() {
     std::cout << "\n";
   }
   std::cout << "\n";
-}
-
-int main() {
-  S21Matrix a;
-  S21Matrix b;
-  a -= b;
-  a.print();
 }

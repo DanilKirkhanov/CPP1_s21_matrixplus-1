@@ -5,7 +5,7 @@ class S21Matrix {
   S21Matrix() noexcept;
   S21Matrix(int rows, int cols);
   S21Matrix(const S21Matrix& other) noexcept;
-  // S21Matrix(S21Matrix&& other) noexcept;
+  S21Matrix(S21Matrix&& other) noexcept;
   ~S21Matrix() noexcept;
 
   bool EqMatrix(const S21Matrix& other) const;
@@ -23,14 +23,19 @@ class S21Matrix {
   S21Matrix operator*(const S21Matrix& other);
   S21Matrix operator*(const double num);
   bool operator==(const S21Matrix& other) const;
-  S21Matrix& operator=(const S21Matrix& other);
-  S21Matrix& operator+=(const S21Matrix& other);
-  S21Matrix& operator-=(const S21Matrix& other);
-  S21Matrix& operator*=(const S21Matrix& other);
-  S21Matrix& operator*=(const double num);
+  S21Matrix operator=(const S21Matrix& other);
+  void operator+=(const S21Matrix& other);
+  void operator-=(const S21Matrix& other);
+  void operator*=(const S21Matrix& other);
+  void operator*=(const double num);
 
   double& operator()(int i, int j);
   double& operator()(int i, int j) const;
+
+  int GetRows() const;
+  int GetCols() const;
+  void SetRows(int rows);
+  void SetCols(int cols);
 
   void print();
 
