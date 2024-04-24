@@ -43,7 +43,7 @@ style:
 	@clang-format -style=Google -n *.cpp *.h
 
 leaks: $(LIB).a
-	$(CC) $(FLAGS) -fsanitize=address -g -c $(FILES)
+	$(CC) $(FLAGS)  -g -c $(FILES)
 	ar rcs $(LIB).a *.o
-	$(CC) -fsanitize=address -g $(FLAGS) $(LIB).a test.cpp -o test $(TEST_LIB)
+	$(CC)  -g $(FLAGS) $(LIB).a test.cpp -o test $(TEST_LIB)
 	leaks -atExit -- ./test
