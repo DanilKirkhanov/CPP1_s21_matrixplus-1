@@ -75,14 +75,14 @@ bool S21Matrix::EqMatrix(const S21Matrix& other) const {
 
 void S21Matrix::SumMatrix(const S21Matrix& other) {
   if (cols_ != other.cols_ || rows_ != other.rows_)
-    throw std::logic_error("Matrices shouls heve the same size");
+    throw std::logic_error("Matrices must be the same size");
   for (int i = 0; i < rows_; i++)
     for (int j = 0; j < cols_; j++) (*this)(i, j) += other(i, j);
 }
 
 void S21Matrix::SubMatrix(const S21Matrix& other) {
   if (cols_ != other.cols_ || rows_ != other.rows_)
-    throw std::logic_error("Matrices shouls heve the same size");
+    throw std::logic_error("Matrices must be the same size");
   for (int i = 0; i < rows_; i++)
     for (int j = 0; j < cols_; j++) (*this)(i, j) -= other(i, j);
 }
@@ -93,7 +93,9 @@ void S21Matrix::MulNumber(const double num) noexcept {
 
 void S21Matrix::MulMatrix(const S21Matrix& other) {
   if (cols_ != other.rows_)
-    throw std::logic_error("Matrices shouls heve the same size");
+    throw std::logic_error(
+        "The columns of the first matrix must be equal to the rows of the "
+        "second matrix");
   S21Matrix res(rows_, other.cols_);
   for (int i = 0; i < rows_; i++)
     for (int j = 0; j < other.cols_; j++)
@@ -110,8 +112,7 @@ S21Matrix S21Matrix::Transpose() {
 }
 
 S21Matrix S21Matrix::CalcComplements() {
-  if (rows_ != cols_)
-    throw std::logic_error("Matrices shouls heve the same size");
+  if (rows_ != cols_) throw std::logic_error("The matrix must be square");
   S21Matrix calc(rows_, rows_);
   if (rows_ == 1)
     calc(0, 0) = (*this)(0, 0);
@@ -127,8 +128,7 @@ S21Matrix S21Matrix::CalcComplements() {
 
 double S21Matrix::Determinant() {
   double det = 0;
-  if (cols_ != rows_)
-    throw std::logic_error("Matrices shouls heve the same size");
+  if (cols_ != rows_) throw std::logic_error("The matrix must be square");
 
   if (cols_ == 1)
     det = (*this)(0, 0);
