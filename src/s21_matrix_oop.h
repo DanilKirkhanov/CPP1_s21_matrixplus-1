@@ -43,6 +43,6 @@ class S21Matrix {
   S21Matrix GetMinor(int row, int col);
   int cols_;
   int rows_;
-  double* matrix_;
+  double** matrix_;
   const double eps = 1e-7;
 };

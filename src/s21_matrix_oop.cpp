@@ -3,35 +3,48 @@
 S21Matrix::S21Matrix() noexcept {
   rows_ = 3;
   cols_ = 3;
-  matrix_ = new double[cols_ * rows_]{};
-  for (int i = 0; i < rows_; i++)
-    for (int j = 0; j < cols_; j++) (*this)(i, j) = i * 3 + j + 1;
+  matrix_ = new double* [rows_] {};
+  for (int i = 0; i < rows_; i++) {
+    matrix_[i] = new double[cols_]{};
+    for (int j = 0; j < cols_; j++) {
+      (*this)(i, j) = i * 3 + j + 1;
+    }
+  }
 }
 
 S21Matrix::S21Matrix(int rows, int cols) {
   if (rows < 1 || cols < 1) throw std::length_error("Bad size");
   rows_ = rows;
   cols_ = cols;
-  matrix_ = new double[cols * rows]{};
+  matrix_ = new double* [rows_] {};
+  for (int i = 0; i < rows_; i++) matrix_[i] = new double[cols_]{};
 }
 
 S21Matrix::S21Matrix(const S21Matrix& other) noexcept {
   cols_ = other.cols_;
   rows_ = other.rows_;
-  matrix_ = new double[rows_ * cols_]{};
+  matrix_ = new double* [rows_] {};
 
-  for (int i = 0; i < rows_; i++)
-    for (int j = 0; j < cols_; j++) (*this)(i, j) = other(i, j);
+  for (int i = 0; i < rows_; i++) {
+    matrix_[i] = new double[cols_]{};
+    for (int j = 0; j < cols_; j++) {
+      (*this)(i, j) = other(i, j);
+    }
+  }
 }
 
 S21Matrix::S21Matrix(S21Matrix&& other) noexcept {
   cols_ = other.cols_;
   rows_ = other.rows_;
-  matrix_ = new double[rows_ * cols_]{};
+  matrix_ = new double* [rows_ * cols_] {};
 
-  for (int i = 0; i < rows_; i++)
-    for (int j = 0; j < cols_; j++) (*this)(i, j) = other(i, j);
-
+  for (int i = 0; i < rows_; i++) {
+    matrix_[i] = new double[cols_]{};
+    for (int j = 0; j < cols_; j++) {
+      (*this)(i, j) = other(i, j);
+    }
+  }
+  for (int i = 0; i < other.rows_; i++) delete[] other.matrix_[i];
   delete[] other.matrix_;
   other.matrix_ = nullptr;
   other.rows_ = 0;
@@ -39,7 +52,10 @@ S21Matrix::S21Matrix(S21Matrix&& other) noexcept {
 }
 
 S21Matrix::~S21Matrix() noexcept {
-  if (matrix_) delete[] matrix_;
+  if (matrix_) {
+    for (int i = 0; i < rows_; i++) delete[] matrix_[i];
+    delete[] matrix_;
+  }
   cols_ = 0;
   rows_ = 0;
   matrix_ = nullptr;
@@ -162,8 +178,14 @@ bool S21Matrix::operator==(const S21Matrix& other) const {
 
 S21Matrix S21Matrix::operator=(const S21Matrix& other) {
   if (cols_ != other.cols_ || rows_ != other.rows_) {
-    if (matrix_) delete[] matrix_;
-    matrix_ = new double[other.rows_ * other.cols_];
+    if (matrix_) {
+      for (int i = 0; i < rows_; i++) delete[] matrix_[i];
+      delete[] matrix_;
+    }
+
+    matrix_ = new double* [other.rows_] {};
+    for (int i = 0; i < other.rows_; i++)
+      matrix_[i] = new double[other.cols_]{};
     rows_ = other.rows_;
     cols_ = other.cols_;
   }
@@ -183,12 +205,12 @@ void S21Matrix::operator*=(const double num) { MulNumber(num); }
 double& S21Matrix::operator()(int i, int j) {
   if (i < 0 || j < 0 || i >= rows_ || j >= cols_)
     throw std::out_of_range("Out of range");
-  return matrix_[i * cols_ + j];
+  return matrix_[i][j];
 }
 double& S21Matrix::operator()(int i, int j) const {
   if (i < 0 || j < 0 || i >= rows_ || j >= cols_)
     throw std::out_of_range("Out of range");
-  return matrix_[i * cols_ + j];
+  return matrix_[i][j];
 }
 
 int S21Matrix::GetRows() const { return rows_; }
